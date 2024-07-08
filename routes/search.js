@@ -24,8 +24,8 @@ async function Search(request,reply){
     
       try {
         const results = await Question.find({ body: { $regex: new RegExp(keyword, 'i') } }).populate('authorID').populate('answers');
-        console.log(results);
-        // return reply.send(results);
+        // console.log(results);
+        return reply.send(results);
       } catch (error) {
         fastify.log.error('Error fetching search results:', error);
         return reply.status(500).send({ error: 'Error fetching search results' });
