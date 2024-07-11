@@ -1,9 +1,11 @@
 const Question = require('../models/question');
 const User = require('../models/user');
-const trie = require('../plugins/trieConnector').trie;
+const trie = require('./../plugins/trieConnector').trie;
+
 
 class questionController {
     async createQuestion(request, reply) {
+        
         const { body, authorID } = request.body;
 
         try {
@@ -16,13 +18,9 @@ class questionController {
             const words = question.body.toLowerCase().split(/\s+/);
             words.forEach(word => {
                 const cleanedWord = word.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ");
-                trie.insert(cleanedWord);
+                trie.insert(cleanedWord,question._id);
               });
-
-            // Notify the clients about the update
-            // request.io.emit('trieUpdated', { success: true });
-
-            return reply.status(201).send({ msg: 'Question created successfully', question });
+            return reply.status(201).send({ msg: 'Question created successfully.', question });
         } catch (err) {
             console.error(err.message);
             return reply.status(500).send({ msg: 'Server error' });
@@ -45,7 +43,7 @@ class questionController {
         const { id } = request.params;
 
         try {
-            const question = await Question.findById(id);
+            const question = await Question.findById(id).populate('authorID');
             if (!question) {
                 return reply.status(404).send({ msg: 'Question not found' });
             }
@@ -69,9 +67,18 @@ class questionController {
             if (question.authorID.toString() !== request.body.authorID) {
                 return reply.status(403).send({ msg: 'Unauthorized to update this question' });
             }
-            
+            const old_words = question.body.toLowerCase().split(/\s+/);
+            old_words.forEach(word => {
+                const cleanedWord = word.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ");
+                trie.remove(cleanedWord,question._id);
+              });
             question.body = body || question.body;
             await question.save();
+            const words = question.body.toLowerCase().split(/\s+/);
+            words.forEach(word => {
+                const cleanedWord = word.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ");
+                trie.insert(cleanedWord,question._id);
+              });
             return reply.status(200).send({ msg: 'Question updated successfully', question });
         } catch (err) {
             console.error(err.message);
@@ -96,6 +103,11 @@ class questionController {
             if (result.deletedCount === 0) {
                 return reply.status(404).send({ msg: 'Question not found' });
             }
+            const words = question.body.toLowerCase().split(/\s+/);
+            words.forEach(word => {
+                const cleanedWord = word.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ");
+                trie.remove(cleanedWord,question._id);
+              });
             return reply.status(200).send({ msg: 'Question deleted successfully' });
         } catch (err) {
             console.error(err.message);

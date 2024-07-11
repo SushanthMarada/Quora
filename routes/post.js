@@ -7,7 +7,6 @@ async function routes(fastify,options){
     fastify.get('/posts/post/:id',postController.getPostbyId);
     fastify.put('/posts/:id',postController.updatePost);
     fastify.delete('/posts/:id',postController.deletePost);
-    // done();
 }
 
 module.exports = fp(routes);

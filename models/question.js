@@ -30,8 +30,6 @@ questionSchema.pre('save', function(next) {
     next();
 });
 
-questionSchema.index({body : 'text'});
-
 QuestionModel = mongoose.model('Question',questionSchema);
 
  module.exports = QuestionModel

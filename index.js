@@ -1,13 +1,11 @@
 require('dotenv').config();
 
 const cors = require('@fastify/cors');
-
 const fastify = require('fastify')({logger: true});
 const mongoosePlugin = require('./plugins/mongoose');
-const {trie,buildTrie} = require('./plugins/trieConnector');
-const fastifyIO = require('fastify-socket.io');
+const { trie,buildTrie } = require('./plugins/trieConnector');
 
-fastify.register(mongoosePlugin,{uri : process.env.MONGO_URI});
+fastify.register(mongoosePlugin,{uri : process.env.MONGO_URI}); //  add support for passwords
 
 const trieReady = new Promise((resolve, reject) => {
   fastify.ready().then(async () => {
@@ -16,29 +14,29 @@ const trieReady = new Promise((resolve, reject) => {
   }).catch(reject);
 });
 
+//create parent routes exporter
+
 fastify.register(require('./routes/user'));
 fastify.register(require('./routes/question'));
 fastify.register(require('./routes/post'));
 fastify.register(require('./routes/answer'));
 fastify.register(require('./routes/like'));
 fastify.register(require('./routes/search'));
+fastify.register(cors, { origin : "*",});
 
-fastify.register(cors, { 
-  origin : "*",
-  // methods : ["GET","POST"],
-});
-
-fastify.get('/', (req, reply) => {
+fastify.get('/info', (req, reply) => { //change this to health check endpoint
   reply.send({ hello: 'world' })
 })
 
-const start = async() => {
+const start = async() => { 
+  //add gracefull shut downs , with propper logs
+  //add winston logger
     try{
-        fastify.listen(process.env.PORT || 3000, '0.0.0.0');
+        fastify.listen({
+          port : process.env.PORT || 3000,
+          host : '0.0.0.0'
+        });
         fastify.log.info(`Server running on port ${process.env.PORT}`);
-        // console.log("trie : ", trie);
-        // trieReady;
-        // console.log(trie);
     }
     catch(err)
     {
@@ -49,6 +47,4 @@ const start = async() => {
 
 start();
 
-
-// module.exports = {fastify, trie, trieReady};
 module.exports = {trieReady};

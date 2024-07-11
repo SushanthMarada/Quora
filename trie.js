@@ -2,6 +2,7 @@ class TrieNode {
     constructor() {
       this.children = {};
       this.isEndOfWord = false;
+      this.questions = [];
     }
   }
   
@@ -10,7 +11,7 @@ class TrieNode {
       this.root = new TrieNode();
     }
   
-    insert(word) {
+    insert(word,questionID) {
       let node = this.root;
       for (let char of word) {
         if (!node.children[char]) {
@@ -19,13 +20,14 @@ class TrieNode {
         node = node.children[char];
       }
       node.isEndOfWord = true;
+      node.questions.push(questionID);
     }
   
     search(prefix) {
       let node = this.root;
       for (let char of prefix) {
         if (!node.children[char]) {
-          return [];
+          return new Map();
         }
         node = node.children[char];
       }
@@ -33,16 +35,47 @@ class TrieNode {
     }
   
     _collectAllWords(node, prefix) {
-      let results = [];
+      let resultMap = new Map();
       if (node.isEndOfWord) {
-        results.push(prefix);
+        resultMap.set(prefix,node.questions);
       }
       for (let char in node.children) {
-        results = results.concat(this._collectAllWords(node.children[char], prefix + char));
+        const childResults = this._collectAllWords(node.children[char], prefix + char);
+        for(let [key,value] of childResults){
+          resultMap.set(key,value);
+        }
       }
-      return results;
+      return resultMap;
+    }
+
+    remove(word,questionID){
+      removehelper(this.root,word,questionID,0);
+    }
+
+    removehelper(node,word,questionID,depth){
+      if(!node) return false;
+      if(word.length === depth){
+        if(node.isEndOfWord){
+          const index = node.questions.indexOf(questionID);
+          if(index > -1){
+            node.questions.splice(index,1);
+          }
+          if(node.questions.length == 0){
+            node.isEndOfWord = false;
+          }
+        }
+        return Object.keys(node.children).length === 0 && !node.isEndOfWord;
+      }
+
+      const char = word[depth];
+
+      if(this.removehelper(node.children[char],word,questionID,depth+1)){
+        delete node[char];
+        return Object.keys(node.childen).length === 0 && !node.isEndOfWord;
+      }
+
+      return false;
     }
   }
   
   module.exports = Trie;
-  
