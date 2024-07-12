@@ -77,4 +77,6 @@ The Quora application provides several key functionalities:
 The application utilizes Winston for logging. Logs are recorded both in the console and in a file (`logs/application.log`). Graceful shutdowns ensure that the server closes connections properly on shutdown signals (`SIGINT` and `SIGTERM`).
 
 ![Suggestions](image.png)
+The Suggestions Feature
 ![Question Results](image-1.png)
+Results for the word clicked.
