@@ -1,7 +1,5 @@
-const {trieReady} = require('./../index');
-const {trie,buildTrie} = require('./../plugins/trieConnector');
-const fastify = require('fastify');
-const Question = require('../models/question');
+// const {trieReady} = require('./../index');
+const {trie,buildTrie,trieReady} = require('./../plugins/trieConnector');
 
 async function Search(request, reply) {
   const { prefix } = request.query;

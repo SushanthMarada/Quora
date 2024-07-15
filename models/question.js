@@ -30,7 +30,4 @@ questionSchema.pre('save', function(next) {
     next();
 });
 
-QuestionModel = mongoose.model('Question',questionSchema);
-
- module.exports = QuestionModel
- 
+module.exports = mongoose.model('Question',questionSchema);

@@ -21,8 +21,6 @@ const postSchema = new mongoose.Schema({
 
 });
 
-// postSchema.index({body : 'text'});
-
 //middleware to update the time stamp
 postSchema.pre('save',function(next){
     this.updatedAt = Date.now();

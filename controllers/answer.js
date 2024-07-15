@@ -1,6 +1,5 @@
 const Answer = require('../models/answer');
 const Question = require('../models/question');
-const User = require('../models/user');
 
 class answerController {
     async createAnswer(request, reply) {
@@ -66,7 +65,6 @@ class answerController {
             }
 
             answer.body = body || answer.body;
-            // answer.updatedAt = Date.now();
             await answer.save();
 
             return reply.status(200).send({ msg: 'Answer updated successfully', answer });

@@ -1,6 +1,6 @@
 const Trie = require('../trie');
 const trie = new Trie();
-const fastify = require('../index');
+// const fastify = require('fastify');
 
 const buildTrie = async (db) => {
   try {
@@ -19,12 +19,14 @@ const buildTrie = async (db) => {
     console.log('Error building Trie:', err);
   }
 };
+let trieReady;
+function connect(fastify) {
+  trieReady = new Promise((resolve, reject) => {
+    fastify.ready().then(async () => {
+      await buildTrie(fastify.mongo.db);
+      resolve();
+    }).catch(reject);
+  });
+}
 
-// const trieReady = new Promise((resolve, reject) => {
-//   fastify.ready().then(async () => {
-//     await buildTrie(fastify.mongo.db);
-//     resolve();
-//   }).catch(reject);
-// });
-
-module.exports = {trie,buildTrie};
+module.exports = {trie,buildTrie, trieReady, connect};

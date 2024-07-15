@@ -1,21 +1,14 @@
 require('dotenv').config();
 
 const cors = require('@fastify/cors');
-const fastify = require('fastify')({logger: true});
+const fastify = require('fastify')({logger : true});
 const mongoosePlugin = require('./plugins/mongoose');
-const { trie,buildTrie } = require('./plugins/trieConnector');
+const {connect} = require('./plugins/trieConnector');
 
-fastify.register(mongoosePlugin,{uri : process.env.MONGO_URI}); //  add support for passwords
-
-const trieReady = new Promise((resolve, reject) => {
-  fastify.ready().then(async () => {
-    await buildTrie(fastify.mongo.db);
-    resolve();
-  }).catch(reject);
-});
+fastify.register(mongoosePlugin,{uri : process.env.MONGO_URI});
+connect(fastify);
 
 //create parent routes exporter
-
 fastify.register(require('./routes/user'));
 fastify.register(require('./routes/question'));
 fastify.register(require('./routes/post'));
@@ -24,13 +17,21 @@ fastify.register(require('./routes/like'));
 fastify.register(require('./routes/search'));
 fastify.register(cors, { origin : "*",});
 
-fastify.get('/info', (req, reply) => { //change this to health check endpoint
-  reply.send({ hello: 'world' })
-})
+fastify.get('/health', (request, reply) => {
+  try{
+    const dbConnection = fastify.mongo.db.command({ ping: 1 });
+    if (dbConnection.ok !== 1) {
+      return reply.status(500).send({ status: 'fail', message: 'Database connection failed' });
+    }
+
+    return reply.status(200).send({ status: 'ok' });
+  } catch (err) {
+    fastify.log.error('Health check failed', err);
+    return reply.status(500).send({ status: 'fail', message: 'Internal Server Error' });
+  }  
+});
 
 const start = async() => { 
-  //add gracefull shut downs , with propper logs
-  //add winston logger
     try{
         fastify.listen({
           port : process.env.PORT || 3000,
@@ -45,6 +46,20 @@ const start = async() => {
     }
 };
 
-start();
+const shutdown = async(signal) => {
+  fastify.log.info(`Received ${signal}. Gracefully shutting down...`);
+  try {
+    await fastify.close();
+    fastify.log.info('Server closed');
+    process.exit(0);
+  } catch (err) {
+    fastify.log.error('Error during shutdown', err);
+    process.exit(1);
+  }
+}
 
-module.exports = {trieReady};
+['SIGINT','SIGTERM'].forEach((signal) => {
+  process.on(signal,() => shutdown(signal));
+} );
+
+start();
