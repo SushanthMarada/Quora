@@ -36,7 +36,7 @@ The Quora application provides several key functionalities:
 ### User Management
 
 - **Register**: Users can register by providing their name, email and password.
-- **Login/Logout**: Existing users can log in to access their accounts.
+- **Login**: Existing users can log in to access their accounts.
 
 <a name="question-management"></a>
 ### Question Management
